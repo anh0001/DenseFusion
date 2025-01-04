@@ -1,0 +1,23 @@
+# requirements.txt
+
+# Specify the PyTorch wheel index URL
+# Choose the appropriate CUDA version by uncommenting the corresponding -f line
+
+# For CUDA 7.5
+# -f https://download.pytorch.org/whl/cu75
+
+# For CUDA 8.0
+# -f https://download.pytorch.org/whl/cu80
+
+# For CUDA 9.0
+-f https://download.pytorch.org/whl/cu90
+
+# PyTorch 1.0.0 with the selected CUDA version
+torch==1.0.0
+
+# Other dependencies
+Pillow
+scipy
+numpy
+pyyaml
+matplotlib
