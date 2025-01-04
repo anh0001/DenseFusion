@@ -36,6 +36,38 @@ This repository is the implementation code of the paper "DenseFusion: 6D Object 
 * matplotlib
 * CUDA 7.5/8.0/9.0 (Required. CPU-only will lead to extreme slow training speed because of the loss calculation of the symmetry objects (pixel-wise nearest neighbour loss).)
 
+## Installation
+
+1. Create and activate a new conda environment:
+```bash
+# Create new environment with Python 3.6
+conda create --prefix densefusion_env python=3.6
+
+# Activate the environment
+conda activate densefusion_env
+```
+
+2. Install dependencies:
+```bash
+# Upgrade pip to latest version
+pip install --upgrade pip
+
+# Install required packages
+pip install -r requirements.txt
+```
+
+3. Additional setup:
+- Make sure CUDA is properly installed (Required versions: 7.5/8.0/9.0)
+- If using Python 2.7, rebuild the `lib/knn/` directory with PyTorch 0.4.1
+- For PyTorch 1.0 users, please check the [PyTroch 1.0 branch](https://github.com/j96w/DenseFusion/tree/Pytorch-1.0)
+
+Note: CPU-only installation is not recommended as it will lead to extremely slow training speed due to the pixel-wise nearest neighbor loss calculation for symmetry objects.
+
+To deactivate the environment when done:
+```bash
+conda deactivate
+```
+
 ## Code Structure
 * **datasets**
 	* **datasets/ycb**
