@@ -3,3 +3,10 @@ Linemod_preprocessed/
 nohup.out
 trained_checkpoints/
 *.zip
+
+*.py[cod]
+__pycache__/
+*.so
+.Python
+*.egg
+*.egg-info/
