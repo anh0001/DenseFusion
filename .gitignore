@@ -1,1 +1,5 @@
 /densefusion_env/
+Linemod_preprocessed/
+nohup.out
+trained_checkpoints/
+*.zip
