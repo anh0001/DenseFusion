@@ -20,7 +20,7 @@ torchvision==0.2.2  # Compatible with torch 1.0.0
 pillow<7
 scipy
 numpy
-pyyaml
+pyyaml==5.4.1
 matplotlib
 cffi
 Cython
