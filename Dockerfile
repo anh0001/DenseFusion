@@ -59,6 +59,7 @@ RUN pip install --no-cache-dir \
 RUN pip install --no-cache-dir \
     torch==1.10.0+cu113 \
     torchvision==0.11.1+cu113 \
+    torch-cluster \
     -f https://download.pytorch.org/whl/torch_stable.html
 
 # Set the working directory to DenseFusion
