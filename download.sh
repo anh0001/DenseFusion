@@ -10,7 +10,7 @@ fi
 
 if [ ! -d datasets/linemod/Linemod_preprocessed ];then
 echo 'Downloading the preprocessed LineMOD dataset'
-wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1YFUra533pxS_IHsb9tB87lLoxbcHYXt8' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1YFUra533pxS_IHsb9tB87lLoxbcHYXt8" -O Linemod_preprocessed.zip && rm -rf /tmp/cookies.txt \
+wget --load-cookies /tmp/cookies.txt "https://drive.usercontent.google.com/download?id=1YFUra533pxS_IHsb9tB87lLoxbcHYXt8&export=download&authuser=0&confirm=t&uuid=61b761c6-02b7-427c-b66c-b7731f61ee27&at=APvzH3qO_R1HBNljzJT1iAAXKKG9:1735995013608" -O Linemod_preprocessed.zip && rm -rf /tmp/cookies.txt \
 && unzip Linemod_preprocessed.zip \
 && mv Linemod_preprocessed/ datasets/linemod/ \
 && rm Linemod_preprocessed.zip
@@ -18,7 +18,7 @@ fi
 
 if [ ! -d trained_checkpoints ];then
 echo 'Downloading the trained checkpoints...'
-wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1bQ9H-fyZplQoNt1qRwdIUX5_3_1pj6US' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1bQ9H-fyZplQoNt1qRwdIUX5_3_1pj6US" -O trained_checkpoints.zip && rm -rf /tmp/cookies.txt \
+wget --load-cookies /tmp/cookies.txt "https://drive.usercontent.google.com/download?id=1gfOnOojzVdEwPzSaPmS3t3aJaQptbys6&export=download&authuser=0&confirm=t&uuid=fc130b6f-34d4-474e-a56a-d6a4e1f9e439&at=APvzH3rfATC3WyxXvO6HLgkXrIER:1735993491936" -O trained_checkpoints.zip && rm -rf /tmp/cookies.txt \
 && unzip trained_checkpoints.zip -x "__MACOSX/*" "*.DS_Store" "*.gitignore" -d trained_checkpoints \
 && mv trained_checkpoints/trained*/ycb trained_checkpoints/ycb \
 && mv trained_checkpoints/trained*/linemod trained_checkpoints/linemod \

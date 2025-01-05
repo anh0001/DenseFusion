@@ -10,11 +10,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
-    libxrender-dev
+    libxrender-dev \
+    libffi-dev
 
 # Python 3.5
 RUN apt-get update && apt-get install -y --no-install-recommends python3.5 python3.5-dev python3-pip python3-tk && \
-    pip3 install --no-cache-dir --upgrade pip setuptools && \
+    pip3 install --no-cache-dir pip==20.3.4 setuptools==44.1.1 && \
     echo "alias python='python3'" >> /root/.bash_aliases && \
     echo "alias pip='pip3'" >> /root/.bash_aliases
 
