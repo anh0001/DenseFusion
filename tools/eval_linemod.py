@@ -20,7 +20,7 @@ from lib.network import PoseNet, PoseRefineNet
 from lib.loss import Loss
 from lib.loss_refiner import Loss_refine
 from lib.transformations import euler_matrix, quaternion_matrix, quaternion_from_matrix
-from lib.knn.__init__ import KNearestNeighbor
+from torch_cluster import knn
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset_root', type=str, default = '', help='dataset root dir')
@@ -35,7 +35,6 @@ iteration = 4
 bs = 1
 dataset_config_dir = 'datasets/linemod/dataset_config'
 output_result_dir = 'experiments/eval_result/linemod'
-knn = KNearestNeighbor(1)
 
 estimator = PoseNet(num_points = num_points, num_obj = num_objects)
 estimator.cuda()
@@ -56,7 +55,7 @@ criterion_refine = Loss_refine(num_points_mesh, sym_list)
 
 diameter = []
 meta_file = open('{0}/models_info.yml'.format(dataset_config_dir), 'r')
-meta = yaml.load(meta_file)
+meta = yaml.load(meta_file, Loader=yaml.FullLoader)  # Added Loader parameter for safety
 for obj in objlist:
     diameter.append(meta[obj]['diameter'] / 1000.0 * 0.1)
 print(diameter)
@@ -113,19 +112,28 @@ for i, data in enumerate(testdataloader, 0):
         my_r = my_r_final
         my_t = my_t_final
 
-    # Here 'my_pred' is the final pose estimation result after refinement ('my_r': quaternion, 'my_t': translation)
-
     model_points = model_points[0].cpu().detach().numpy()
     my_r = quaternion_matrix(my_r)[:3, :3]
     pred = np.dot(model_points, my_r.T) + my_t
     target = target[0].cpu().detach().numpy()
 
     if idx[0].item() in sym_list:
-        pred = torch.from_numpy(pred.astype(np.float32)).cuda().transpose(1, 0).contiguous()
-        target = torch.from_numpy(target.astype(np.float32)).cuda().transpose(1, 0).contiguous()
-        inds = knn(target.unsqueeze(0), pred.unsqueeze(0))
-        target = torch.index_select(target, 1, inds.view(-1) - 1)
-        dis = torch.mean(torch.norm((pred.transpose(1, 0) - target.transpose(1, 0)), dim=1), dim=0).item()
+        # Convert numpy arrays to torch tensors and move to GPU
+        pred = torch.from_numpy(pred.astype(np.float32)).cuda()
+        target = torch.from_numpy(target.astype(np.float32)).cuda()
+        
+        # Reshape for torch_cluster knn
+        pred = pred.contiguous()  # Shape: (N, 3)
+        target = target.contiguous()  # Shape: (M, 3)
+        
+        # Get nearest neighbors using torch_cluster knn
+        assign_index = knn(target, pred, k=1)[1]  # Returns (row, col), we want col indices
+        
+        # Reorder target using obtained indices
+        target = target[assign_index]
+        
+        # Calculate distance
+        dis = torch.mean(torch.norm((pred - target), dim=1)).item()
     else:
         dis = np.mean(np.linalg.norm(pred - target, axis=1))
 

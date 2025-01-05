@@ -6,24 +6,22 @@ import numpy as np
 import torch.nn as nn
 import random
 import torch.backends.cudnn as cudnn
-from lib.knn import KNearestNeighbor
+from torch_cluster import knn
 
 def loss_calculation(pred_r, pred_t, pred_c, target, model_points, idx, points, w, refine, num_point_mesh, sym_list):
     bs, num_p, _ = pred_c.size()
 
     pred_r = pred_r / (torch.norm(pred_r, dim=2).view(bs, num_p, 1))
     
-    base = torch.cat((
-        (1.0 - 2.0*(pred_r[:, :, 2]**2 + pred_r[:, :, 3]**2)).view(bs, num_p, 1),
-        (2.0*pred_r[:, :, 1]*pred_r[:, :, 2] - 2.0*pred_r[:, :, 0]*pred_r[:, :, 3]).view(bs, num_p, 1),
-        (2.0*pred_r[:, :, 0]*pred_r[:, :, 2] + 2.0*pred_r[:, :, 1]*pred_r[:, :, 3]).view(bs, num_p, 1),
-        (2.0*pred_r[:, :, 1]*pred_r[:, :, 2] + 2.0*pred_r[:, :, 3]*pred_r[:, :, 0]).view(bs, num_p, 1),
-        (1.0 - 2.0*(pred_r[:, :, 1]**2 + pred_r[:, :, 3]**2)).view(bs, num_p, 1),
-        (-2.0*pred_r[:, :, 0]*pred_r[:, :, 1] + 2.0*pred_r[:, :, 2]*pred_r[:, :, 3]).view(bs, num_p, 1),
-        (-2.0*pred_r[:, :, 0]*pred_r[:, :, 2] + 2.0*pred_r[:, :, 1]*pred_r[:, :, 3]).view(bs, num_p, 1),
-        (2.0*pred_r[:, :, 0]*pred_r[:, :, 1] + 2.0*pred_r[:, :, 2]*pred_r[:, :, 3]).view(bs, num_p, 1),
-        (1.0 - 2.0*(pred_r[:, :, 1]**2 + pred_r[:, :, 2]**2)).view(bs, num_p, 1)
-    ), dim=2).contiguous().view(bs * num_p, 3, 3)
+    base = torch.cat(((1.0 - 2.0*(pred_r[:, :, 2]**2 + pred_r[:, :, 3]**2)).view(bs, num_p, 1),\
+                      (2.0*pred_r[:, :, 1]*pred_r[:, :, 2] - 2.0*pred_r[:, :, 0]*pred_r[:, :, 3]).view(bs, num_p, 1), \
+                      (2.0*pred_r[:, :, 0]*pred_r[:, :, 2] + 2.0*pred_r[:, :, 1]*pred_r[:, :, 3]).view(bs, num_p, 1), \
+                      (2.0*pred_r[:, :, 1]*pred_r[:, :, 2] + 2.0*pred_r[:, :, 3]*pred_r[:, :, 0]).view(bs, num_p, 1), \
+                      (1.0 - 2.0*(pred_r[:, :, 1]**2 + pred_r[:, :, 3]**2)).view(bs, num_p, 1), \
+                      (-2.0*pred_r[:, :, 0]*pred_r[:, :, 1] + 2.0*pred_r[:, :, 2]*pred_r[:, :, 3]).view(bs, num_p, 1), \
+                      (-2.0*pred_r[:, :, 0]*pred_r[:, :, 2] + 2.0*pred_r[:, :, 1]*pred_r[:, :, 3]).view(bs, num_p, 1), \
+                      (2.0*pred_r[:, :, 0]*pred_r[:, :, 1] + 2.0*pred_r[:, :, 2]*pred_r[:, :, 3]).view(bs, num_p, 1), \
+                      (1.0 - 2.0*(pred_r[:, :, 1]**2 + pred_r[:, :, 2]**2)).view(bs, num_p, 1)), dim=2).contiguous().view(bs * num_p, 3, 3)
 
     ori_base = base
     base = base.contiguous().transpose(2, 1).contiguous()
@@ -39,17 +37,25 @@ def loss_calculation(pred_r, pred_t, pred_c, target, model_points, idx, points, 
 
     if not refine:
         if idx[0].item() in sym_list:
-            target = target[0].transpose(1, 0).contiguous().view(3, -1)
-            pred = pred.permute(2, 0, 1).contiguous().view(3, -1)
-            # Updated KNN usage: specify k=1
-            inds = KNearestNeighbor.apply(target.unsqueeze(0), pred.unsqueeze(0), 1)
-            target = torch.index_select(target, 1, inds.view(-1) - 1)
-            target = target.view(3, bs * num_p, num_point_mesh).permute(1, 2, 0).contiguous()
-            pred = pred.view(3, bs * num_p, num_point_mesh).permute(1, 2, 0).contiguous()
+            target = target[0].transpose(1, 0).contiguous().view(3, -1).t()  # Change to (N, 3) format
+            pred = pred.permute(2, 0, 1).contiguous().view(-1, 3)  # Change to (M, 3) format
+            
+            # Use torch_cluster's knn
+            # Convert to cuda tensors if not already
+            target = target.cuda() if not target.is_cuda else target
+            pred = pred.cuda() if not pred.is_cuda else pred
+            
+            # Get nearest neighbors
+            assign_index = knn(target, pred, k=1)[1]  # Returns (row, col), we want col indices
+            
+            # Reorder target using obtained indices
+            target = target[assign_index].view(-1, 3)
+            target = target.view(bs * num_p, num_point_mesh, 3)
+            pred = pred.view(bs * num_p, num_point_mesh, 3)
 
     dis = torch.mean(torch.norm((pred - target), dim=2), dim=1)
     loss = torch.mean((dis * pred_c - w * torch.log(pred_c)), dim=0)
-
+    
     pred_c = pred_c.view(bs, num_p)
     how_max, which_max = torch.max(pred_c, 1)
     dis = dis.view(bs, num_p)
@@ -65,18 +71,14 @@ def loss_calculation(pred_r, pred_t, pred_c, target, model_points, idx, points, 
     ori_t = t.repeat(num_point_mesh, 1).contiguous().view(1, num_point_mesh, 3)
     new_target = torch.bmm((new_target - ori_t), ori_base).contiguous()
 
-    # print('------------> ', dis[0][which_max[0]].item(), pred_c[0][which_max[0]].item(), idx[0].item())
-
     return loss, dis[0][which_max[0]], new_points.detach(), new_target.detach()
 
 
 class Loss(_Loss):
-
     def __init__(self, num_points_mesh, sym_list):
         super(Loss, self).__init__(True)
         self.num_pt_mesh = num_points_mesh
         self.sym_list = sym_list
 
     def forward(self, pred_r, pred_t, pred_c, target, model_points, idx, points, w, refine):
-
         return loss_calculation(pred_r, pred_t, pred_c, target, model_points, idx, points, w, refine, self.num_pt_mesh, self.sym_list)
