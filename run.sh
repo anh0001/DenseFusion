@@ -1,22 +1,21 @@
 #!/bin/sh
 
 # Runs a docker container with the image created by build.sh
-until nvidia-docker ps
+until docker ps
 do
     echo "Waiting for docker server"
     sleep 1
 done
 
 XSOCK=/tmp/.X11-unix
-
 XAUTH=/root/.Xauthority
-
 SRC_CONTAINER=/root/dense_fusion
 SRC_HOST="$(pwd)"
 
 xhost local:root
 
-nvidia-docker run \
+docker run \
+    --gpus all \
     --name dense_fusion \
     -it --rm \
     --volume=$XSOCK:$XSOCK:rw \
