@@ -1,0 +1,15 @@
+# Core Python packages
+numpy>=1.24.0,<2.0.0
+scipy>=1.10.0,<2.0.0
+pyyaml>=6.0,<7.0
+cffi>=1.15.0,<2.0.0
+matplotlib>=3.7.0,<4.0.0
+Cython>=0.29.33,<1.0.0
+requests>=2.28.0,<3.0.0
+opencv-python>=4.8.0,<5.0.0
+pillow>=9.5.0,<10.0.0
+
+# PyTorch ecosystem with CUDA 11.5
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torch==2.1.2+cu118
+torchvision==0.16.2+cu118

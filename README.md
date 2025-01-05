@@ -42,52 +42,76 @@ This repository is the implementation code of the paper "DenseFusion: 6D Object 
 
 ## Installation
 
-### 1. NVIDIA Container Toolkit Setup
+### Option 1: Local Installation with pip
+
+1. Create and activate a new conda environment:
+```bash
+# Create new environment with Python 3.8
+conda create --prefix densefusion_env python=3.9
+
+# Activate the environment
+conda activate ./densefusion_env
+```
+
+2. Install dependencies:
+```bash
+# Upgrade pip to latest version
+pip install --upgrade pip
+
+# Install required packages
+pip install -r requirements.txt
+pip install torch-scatter torch-sparse torch-cluster -f https://data.pyg.org/whl/torch-2.1.2+cu118.html
+```
+
+3. Download dataset and checkpoints:
+```bash
+./download.sh
+```
+
+To deactivate the environment when done:
+```bash
+conda deactivate
+```
+
+### Option 2: Docker Installation
+
+1. Install NVIDIA Container Toolkit:
 ```bash
 # Verify NVIDIA GPU is detected
 nvidia-smi
 
-# Set up the NVIDIA package repositories
+# Add NVIDIA package repositories
 distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
 curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
 curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list \
     | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
 
-# Install the NVIDIA Container Toolkit
+# Install NVIDIA Container Toolkit
 sudo apt-get update
 sudo apt-get install -y nvidia-container-toolkit
 
 # Restart Docker daemon
 sudo systemctl restart docker
-
-# Verify installation
-sudo docker run --rm --gpus all nvidia/cuda:11.0-base nvidia-smi
 ```
 
-### 2. Dataset and Checkpoint Setup
+2. Download dataset and checkpoints:
 ```bash
-# Download required files
 ./download.sh
-
-# Verify dataset structure
-ls -l datasets/ycb/YCB_Video_Dataset
-ls -l trained_checkpoints/
 ```
 
-### 3. Container Setup
+3. Build and run container:
 ```bash
-# Build container (this may take several minutes)
+# Build container
 ./build.sh
 
 # Run container with GPU support
 ./run.sh
 ```
 
-Note: 
-- Ensure NVIDIA drivers are installed on your host system
-- Minimum required NVIDIA driver version: 450.80.02
-- Docker version 19.03 or higher is required
-- Check GPU access inside container using nvidia-smi
+**Docker Requirements:**
+- NVIDIA drivers (minimum version: 450.80.02)
+- Docker version 19.03 or higher
+- Verify GPU access inside container using `nvidia-smi`
 
 If you encounter permission issues:
 ```bash
