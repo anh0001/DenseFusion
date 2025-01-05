@@ -1,3 +1,5 @@
+nohup.out
+
 # Dataset directories
 datasets/linemod/Linemod_preprocessed
 datasets/ycb/YCB_Video_Dataset

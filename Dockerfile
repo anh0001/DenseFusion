@@ -5,7 +5,7 @@ FROM nvidia/cudagl:11.3.1-devel-ubuntu20.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Set environment variables for Python
-ENV PYTHON_VERSION=3.7
+ENV PYTHON_VERSION=3.8
 
 # Install basic system packages, Python, and dependencies in a single RUN to reduce layers
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -59,8 +59,10 @@ RUN pip install --no-cache-dir \
 RUN pip install --no-cache-dir \
     torch==1.10.0+cu113 \
     torchvision==0.11.1+cu113 \
-    torch-cluster \
     -f https://download.pytorch.org/whl/torch_stable.html
+
+RUN pip install --no-cache-dir \
+    torch-cluster -f https://data.pyg.org/whl/torch-1.10.0+cu113.html
 
 # Set the working directory to DenseFusion
 WORKDIR /root/dense_fusion
