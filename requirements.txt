@@ -14,7 +14,7 @@
 
 # PyTorch 1.0.0 with the selected CUDA version
 torch==1.0.0
-torchvision==0.2.0  # Compatible with torch 1.0.0
+torchvision==0.2.2  # Compatible with torch 1.0.0
 
 # Other dependencies
 pillow<7
@@ -25,4 +25,4 @@ matplotlib
 cffi
 Cython
 requests
-opencv-python
+opencv-python==4.5.4.60

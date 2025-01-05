@@ -44,7 +44,7 @@ This repository is the implementation code of the paper "DenseFusion: 6D Object 
 conda create --prefix densefusion_env python=3.6
 
 # Activate the environment
-conda activate densefusion_env
+conda activate ./densefusion_env
 ```
 
 2. Install dependencies:
