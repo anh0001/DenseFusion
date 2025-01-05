@@ -1,34 +1,74 @@
-FROM nvidia/cudagl:9.0-devel-ubuntu16.04
+# Use CUDA 11.3.1 with Ubuntu 20.04
+FROM nvidia/cudagl:11.3.1-devel-ubuntu20.04
 
-ARG DEBIAN_FRONTEND=noninteractive
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Essentials: developer tools, build tools, OpenBLAS
+# Set environment variables for Python
+ENV PYTHON_VERSION=3.7
+
+# Install basic system packages, Python, and dependencies in a single RUN to reduce layers
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    apt-utils git curl vim unzip openssh-client wget \
-    build-essential cmake \
+    software-properties-common \
+    apt-utils \
+    git \
+    curl \
+    vim \
+    unzip \
+    openssh-client \
+    wget \
+    build-essential \
+    cmake \
     libopenblas-dev \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
     libxrender-dev \
-    libffi-dev
+    libffi-dev \
+    && add-apt-repository ppa:deadsnakes/ppa \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    python${PYTHON_VERSION} \
+    python${PYTHON_VERSION}-dev \
+    python3-pip \
+    python3-tk \
+    && rm -rf /var/lib/apt/lists/*
 
-# Python 3.5
-RUN apt-get update && apt-get install -y --no-install-recommends python3.5 python3.5-dev python3-pip python3-tk && \
-    pip3 install --no-cache-dir pip==20.3.4 setuptools==44.1.1 && \
-    echo "alias python='python3'" >> /root/.bash_aliases && \
+# Configure Python environment and upgrade pip
+RUN rm -f /usr/bin/python /usr/bin/pip || true && \
+    ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python && \
+    ln -sf /usr/bin/pip3 /usr/bin/pip && \
+    pip install --no-cache-dir --upgrade pip setuptools
+
+# Set up Python aliases for convenience
+RUN echo "alias python='python${PYTHON_VERSION}'" >> /root/.bash_aliases && \
     echo "alias pip='pip3'" >> /root/.bash_aliases
 
-# Science libraries and other common packages
-RUN pip3 --no-cache-dir install \
-    numpy scipy pyyaml cffi pyyaml matplotlib Cython requests opencv-python "pillow<7"
+# Install essential Python libraries
+RUN pip install --no-cache-dir \
+    numpy \
+    scipy \
+    pyyaml \
+    cffi \
+    matplotlib \
+    Cython \
+    requests \
+    opencv-python \
+    "pillow<7"
 
-# Tensorflow
-RUN pip3 install https://download.pytorch.org/whl/cu90/torch-0.4.1-cp35-cp35m-linux_x86_64.whl && \
-    pip3 install torchvision==0.2.2.post3
+# Install PyTorch and torchvision compatible with CUDA 11.3
+RUN pip install --no-cache-dir \
+    torch==1.10.0+cu113 \
+    torchvision==0.11.1+cu113 \
+    -f https://download.pytorch.org/whl/torch_stable.html
+
+# Set the working directory to DenseFusion
+WORKDIR /root/dense_fusion
 
 # Expose port for TensorBoard
 EXPOSE 6006
 
-# cd to home on login
+# Automatically navigate to the working directory on login
 RUN echo "cd /root/dense_fusion" >> /root/.bashrc
+
+# Set default command to bash
+CMD ["/bin/bash"]
