@@ -1,10 +1,42 @@
+# Dataset directories
 datasets/linemod/Linemod_preprocessed
 datasets/ycb/YCB_Video_Dataset
-*.zip
-*__pycache__
-experiments/logs/*
-*.pyc
-lib/knn/knn_pytorch/__pycache__/*
-__init__.*
-*.pth
 YCB_Video_toolbox
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.pyc
+.eggs/
+*.egg-info/
+dist/
+build/
+
+# Cython / C extensions
+*.so
+*.c
+build/
+*.pyd
+
+# Model files
+*.pth
+*.onnx
+*.pt
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# System
+.DS_Store
+Thumbs.db
+*.zip
+.env
+
+# Logs and experiments
+experiments/logs/*
+lib/knn/knn_pytorch/__pycache__/*
