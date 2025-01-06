@@ -127,9 +127,9 @@ def main():
         [0, 0, 1]
     ])
 
-    # Create window with specific size
-    cv2.namedWindow('Pose Estimation', cv2.WINDOW_NORMAL)
-    cv2.resizeWindow('Pose Estimation', 960, 720)
+    # Create window with specific size and flags
+    cv2.namedWindow('Pose Estimation', cv2.WINDOW_KEEPRATIO | cv2.WINDOW_GUI_NORMAL)
+    cv2.resizeWindow('Pose Estimation', 640, 480)  # Original image size
 
     for i, data in enumerate(testdataloader, 0):
         points, choose, img, target, model_points, idx = data
@@ -181,10 +181,24 @@ def main():
         # Prepare image for visualization
         # Convert image from tensor to numpy and denormalize
         img_np = img[0].cpu().numpy().transpose(1, 2, 0)
-        mean = np.array([0.485, 0.456, 0.406])
-        std = np.array([0.229, 0.224, 0.225])
-        img_np = ((img_np * std + mean) * 255).astype(np.uint8)
+        
+        # Check the image range - if it's already in [0,1], skip normalization
+        if img_np.max() <= 1.0:
+            mean = np.array([0.485, 0.456, 0.406])
+            std = np.array([0.229, 0.224, 0.225])
+            img_np = ((img_np * std + mean) * 255).astype(np.uint8)
+        else:
+            img_np = img_np.astype(np.uint8)
+            
+        # Ensure image is full size (should be 480x640)
+        if img_np.shape[0] != 480 or img_np.shape[1] != 640:
+            img_np = cv2.resize(img_np, (640, 480))
+            
         img_vis = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
+        
+        # Print image shape and values for debugging
+        print(f"Image shape: {img_vis.shape}")
+        print(f"Image min/max values: {img_vis.min()}/{img_vis.max()}")
 
         # Get rotation matrix from quaternion
         R = quaternion_matrix(my_r)[:3, :3]
@@ -204,7 +218,10 @@ def main():
         # Display visualization
         cv2.imshow('Pose Estimation', img_vis)
         
-        key = cv2.waitKey(1000)  # Wait for 10ms
+        # Save the visualization
+        cv2.imwrite(f'visualization_results/pose_{i:04d}.png', img_vis)
+        
+        key = cv2.waitKey(10)  # Wait for 10ms
         if key == 27:  # ESC key
             break
 
