@@ -9,7 +9,6 @@ We have released the code and arXiv preprint for our new project [6-PACK](https:
 
 ## Table of Content
 - [Overview](#overview)
-- [Requirements](#requirements)
 - [Installation](#installation)
 - [Code Structure](#code-structure)
 - [Datasets](#datasets)
@@ -29,7 +28,7 @@ This repository is the implementation code of the paper "DenseFusion: 6D Object 
 
 ## Installation
 
-### Option 1: Local Installation with pip
+### Option 1: Local Installation with pip (Recommended)
 
 1. Create and activate a new conda environment:
 ```bash
